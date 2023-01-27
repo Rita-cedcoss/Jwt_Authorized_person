@@ -1,4 +1,10 @@
-import React, { FormEventHandler, SetStateAction, useEffect, useRef, useState } from "react";
+import React, {
+  FormEventHandler,
+  SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useJwt } from "react-jwt";
 import { useNavigate } from "react-router-dom";
 import "./typeProps";
@@ -9,49 +15,70 @@ type logprops = {
 const JWTLogin = (props: logprops) => {
   let emailRef = useRef<HTMLInputElement>(null);
   let passwordRef = useRef<HTMLInputElement>(null);
-  const[massage,setMessage] =useState("");
-  let [dataToken,setDatatoken]=useState<loginProps>({eml:" ",pwd:" ",token:" "});
-  const{decodedToken}=useJwt<decodeProps>(dataToken.token)
+  const [massage, setMessage] = useState("");
+  let [dataToken, setDatatoken] = useState<loginProps>({
+    eml: " ",
+    pwd: " ",
+    token: " ",
+  });
+  const { decodedToken ,isExpired} = useJwt<decodeProps>(dataToken.token);
   console.log(decodedToken);
-  const navigate=useNavigate();
+  const navigate = useNavigate();
 
-  const login = (e:React.FormEvent<HTMLFormElement>) => {
+  const login = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    props.loginarr.map((item)=>{
-        if(emailRef.current!==null&&passwordRef.current!==null){
-            if(emailRef.current?.value!==""&& passwordRef.current.value!=="")
-            {
-                if(item.eml===emailRef.current.value && item.pwd===passwordRef.current.value)
-                {
-                    dataToken=item;
-                    alert("Login successfully");
-                    setMessage(" ");
-                }
-                if(item.eml!==emailRef.current.value && item.pwd!==passwordRef.current.value)
-                {
-                    setMessage("User not found")
-                }
-               
-            }
-            else{
-                alert("fill all details");
-            }
-
+    props.loginarr.map((item) => {
+      if (emailRef.current !== null && passwordRef.current !== null) {
+        if (
+          emailRef.current?.value !== "" &&
+          passwordRef.current.value !== ""
+        ) {
+          if (
+            item.eml === emailRef.current.value &&
+            item.pwd === passwordRef.current.value
+          ) {
+            // if(!isExpired){
+              dataToken = item;
+            alert("Login successfully");
+            setMessage(" ");
+            // }
+            
+          }
+          if (
+            item.eml !== emailRef.current.value &&
+            item.pwd !== passwordRef.current.value
+          ) {
+            setMessage("User not found");
+          }
+        } else {
+          alert("fill all details");
         }
-    })
+      }
+    });
     setDatatoken(dataToken);
     e.currentTarget.reset();
   };
-  useEffect(()=>{
-      if(decodedToken!==null)
-      {
-        if(decodedToken.rol=="admin")
-        {
-           navigate("/dashboard");
+  useEffect(() => {
+    if (decodedToken !== null) {
+      if (decodedToken.rol == "admin") {
+        console.log(isExpired);
+       if(!isExpired){
+        navigate("/dashboard");
+      }
+      else{
+        setMessage("Token expired");
+      }
+      }
+       if (decodedToken.rol == "user"){
+        if(!isExpired){
+        alert("User Token is not expired")
+        }
+        else{
+          setMessage("Token expired");
         }
       }
-        
-  },[decodedToken]);
+    }
+  }, [decodedToken]);
   return (
     <div className="p-4">
       <h3 className="text-center mt-4">Login Account</h3>
@@ -82,9 +109,7 @@ const JWTLogin = (props: logprops) => {
           </button>
         </form>
       </div>
-      <div className="text-center fs-2 text-danger">
-        {massage}
-      </div>
+      <div className="text-center fs-2 text-danger">{massage}</div>
     </div>
   );
 };
